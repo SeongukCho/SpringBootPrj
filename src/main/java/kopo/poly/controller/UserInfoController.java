@@ -9,14 +9,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 @Slf4j
 @RequiredArgsConstructor
 @Controller
 public class UserInfoController {
-    private IUserInfoService userInfoService;
+    private final IUserInfoService userInfoService;
 
     /*회원가입 화면으로 이동*/
     @GetMapping(value = "/user/userRegForm")
@@ -27,10 +29,11 @@ public class UserInfoController {
     }
 
     /*
-    * 회원가입 로직 처리
-    *
-    */
-    public String inserUserInfo(HttpServletRequest request, ModelMap modelMap) throws Exception {
+     * 회원가입 로직 처리
+     *
+     */
+    @PostMapping(value = "/user/insertUserInfo")
+    public String insertUserInfo(HttpServletRequest request, ModelMap modelMap) throws Exception {
         log.info(this.getClass().getName() + ".insertUserInfo start!");
         int res;
         String msg = ""; //회원가입 결과에 대한 메시지를 전달할 변수
@@ -111,10 +114,61 @@ public class UserInfoController {
             log.info(e.toString());
             e.printStackTrace();
         } finally {
-            modelMap.addAttribute("msg",msg);
-            modelMap.addAttribute("url",url);
+            modelMap.addAttribute("msg", msg);
+            modelMap.addAttribute("url", url);
 
             log.info(this.getClass().getName() + ".insertUserInfo End!");
+        }
+
+        return "/redirect";
+    }
+
+    @PostMapping(value = "/user/loginProc")
+    public String loginProc(HttpServletRequest request, ModelMap model, HttpSession session) {
+        log.info(this.getClass().getName() + ".loginProc Start!");
+
+        String msg = "";
+        String url = "";
+        UserInfoDTO pDTO = null;
+
+        try {
+            String user_id = CmmUtil.nvl(request.getParameter("user_id"));
+            String password = CmmUtil.nvl(request.getParameter("password"));
+
+            log.info("user_id : " + user_id);
+            log.info("password : " + password);
+
+            pDTO = new UserInfoDTO();
+
+            pDTO.setUser_id(user_id);
+
+            pDTO.setPassword(EncryptUtil.encHashSHA256(password));
+
+            UserInfoDTO rDTO = userInfoService.getLogin(pDTO);
+
+            if (CmmUtil.nvl(rDTO.getUser_id()).length() > 0) {
+                /*
+                 * 세션에 회원아이디 저장하기, 추후 로그인 여부를 체크하기 위해 세션에 값이 존재하는지 체크한다.
+                 * 일반적으로 세션에 저장되는 키는 대문자로 입력하며, 앞에 SS를 붙인다.
+                 *
+                 * Session 단어에서 SS를 가져온 것이다.
+                 */
+                session.setAttribute("SS_USER_ID", user_id);
+                session.setAttribute("SS_USER_NAME", CmmUtil.nvl(rDTO.getUser_name()));
+
+                msg = "로그인이 성공했습니다. \n" + rDTO.getUser_name() + "님 환영합니다.";
+                url = "/main";
+            }
+        } catch (Exception e) {
+            msg = "시스템 문제로 로그인이 실패했습니다.";
+            log.info(e.toString());
+            e.printStackTrace();
+
+        } finally {
+            model.addAttribute("msg", msg);
+            model.addAttribute("url", url);
+
+            log.info(this.getClass().getName() + ".loginProc End!");
         }
 
         return "/redirect";
