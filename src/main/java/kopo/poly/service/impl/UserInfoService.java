@@ -61,11 +61,11 @@ public class UserInfoService implements IUserInfoService {
             dto.setContents("인증번호는 " + authNumber + " 입니다.");
             dto.setToMail(EncryptUtil.decAES128CBC(CmmUtil.nvl(pDTO.getEmail())));
 
-            mailService.doSendMail(dto);
+            mailService.doSendMail(dto); // 이메일 발송
 
             dto = null;
 
-            rDTO.setAuthNumber(authNumber);
+            rDTO.setAuthNumber(authNumber); // 인증번호를 결과값에 넣어주기
 
         }
 
