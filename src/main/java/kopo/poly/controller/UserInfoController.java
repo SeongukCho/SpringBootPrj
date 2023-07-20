@@ -200,8 +200,9 @@ public class UserInfoController {
         log.info(this.getClass().getName() + ".user/login End!");
         return "/user/login";
     }
+    // 회원 가입 전 아이디 중복체크하기(Ajax를 통해 입력한 아이디 정보 받음)
     @ResponseBody
-    @PostMapping
+    @PostMapping(value = "/user/getUserIdExists")
     public UserInfoDTO getUserExists(HttpServletRequest request) throws Exception {
 
         log.info(this.getClass().getName() + ".getUserIdExists Start!");
@@ -221,16 +222,19 @@ public class UserInfoController {
 
         return rDTO;
     }
-
+    /*
+     * 회원 가입 전 이메일 중복체크하기(Ajax를 통해 입력한 아이디 정보 받음)
+     * 유효한 이메일인지 확인하기 위해 입력된 이메일에 인증번호 포함하여 메일 발송
+     */
     @ResponseBody
-    @PostMapping
+    @PostMapping(value = "/user/getEmailExists")
     public UserInfoDTO getEmailExists(HttpServletRequest request) throws Exception {
 
         log.info(this.getClass().getName() + ".getEmailExists Start!");
 
         String email = CmmUtil.nvl(request.getParameter("email"));
 
-        log.info("user_id : " + email);
+        log.info("email : " + email);
 
         UserInfoDTO pDTO = new UserInfoDTO();
         pDTO.setEmail(EncryptUtil.encAES128CBC(email));

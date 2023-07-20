@@ -21,7 +21,7 @@ public class UserInfoService implements IUserInfoService {
 
     private final IUserInfoMapper userInfoMapper; // 회원관련 SQL 사용하기 위한 Mapper 가져오기
 
-    private final IMailService mailService;
+    private final IMailService mailService; // 메일 발송을 위한 MailService 자바 객체 가져오기
 
     @Override
     public UserInfoDTO getUserIdExists(UserInfoDTO pDTO) throws Exception {
@@ -55,6 +55,7 @@ public class UserInfoService implements IUserInfoService {
 
             log.info("authNumber : " + authNumber);
 
+            // 인증번호 발송 로직
             MailDTO dto = new MailDTO();
 
             dto.setTitle("이메일 중복 확인 인증번호 발송 메일");
@@ -86,7 +87,7 @@ public class UserInfoService implements IUserInfoService {
         res = userInfoMapper.insertUserInfo(pDTO);
 
 
-        log.info(this.getClass().getName() + ".inserUserInfo End!");
+        log.info(this.getClass().getName() + ".insertUserInfo End!");
 
         return res;
     }
